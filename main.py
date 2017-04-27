@@ -73,7 +73,7 @@ out = torchvision.utils.make_grid(inputs)
 #imshow(out, title=[dset_classes[x] for x in classes])
 
 
-def train_model(model, criterion, optimizer, lr_scheduler, num_epochs=25):
+def train_model(model, criterion, optimizer,  num_epochs=25):
     since = time.time()
 
     best_model = model
@@ -86,7 +86,6 @@ def train_model(model, criterion, optimizer, lr_scheduler, num_epochs=25):
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
-                optimizer = lr_scheduler(optimizer, epoch)
                 model.train(True)  # Set model to training mode
             else:
                 model.train(False)  # Set model to evaluate mode
@@ -135,54 +134,16 @@ def train_model(model, criterion, optimizer, lr_scheduler, num_epochs=25):
     return best_model
 
 
-def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
-    """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
-    lr = init_lr * (0.1**(epoch // lr_decay_epoch))
-
-    if epoch % lr_decay_epoch == 0:
-        print('LR is set to {}'.format(lr))
-
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-
-    return optimizer
-
-def visualize_model(model, num_images=6):
-    images_so_far = 0
-    fig = plt.figure()
-
-    for i, data in enumerate(dset_loaders['val']):
-        inputs, labels = data
-        if use_gpu:
-            inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
-        else:
-            inputs, labels = Variable(inputs), Variable(labels)
-
-        outputs = model(inputs)
-        _, preds = torch.max(outputs.data, 1)
-
-        for j in range(inputs.size()[0]):
-            images_so_far += 1
-            ax = plt.subplot(num_images//2, 2, images_so_far)
-            ax.axis('off')
-            ax.set_title('predicted: {}'.format(dset_classes[labels.data[j]]))
-            imshow(inputs.cpu().data[j])
-
-            if images_so_far == num_images:
-                return
-
+#we use a pretrained model of Alexnet
 alexTunedClassifier = alexnet(True)
 
-
-model = alexnet(True)
 criterion = nn.CrossEntropyLoss()
 
-# Observe that all parameters are being optimized
 optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
                      {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
                     ], lr=0.01, momentum=0.9)
 
-model2 = train_model(alexTunedClassifier, criterion, optimizer, exp_lr_scheduler,
+model2 = train_model(alexTunedClassifier, criterion, optimizer,
                        num_epochs=5)
 
 # save the net
