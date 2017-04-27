@@ -133,18 +133,35 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
         time_elapsed // 60, time_elapsed % 60))
     return best_model
 
+#Function for displaying prediction for images
+def visualize_model(model, num_images=3):
+    images_so_far = 0
+    fig = plt.figure()
+    for i, data in enumerate(dset_loaders['val']):
+        inputs, labels = data
+        if use_gpu:
+            inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+        else:
+            inputs, labels = Variable(inputs), Variable(labels)
+        outputs = model(inputs)[1]
+        _, preds = torch.max(outputs, 1)
+        for j in range(inputs.size()[0]):
+            images_so_far += 1
+            ax = plt.subplot(num_images//2, 2, images_so_far)
+            ax.axis('off')
+            ax.set_title('predicted: {}'.format(dset_classes[labels.data[j]]))
+            imshow(inputs.cpu().data[j])
+            if images_so_far == num_images:
+                return
 
 #we use a pretrained model of Alexnet
 alexTunedClassifier = alexnet(True)
-
 criterion = nn.CrossEntropyLoss()
-
 optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
                      {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
                     ], lr=0.01, momentum=0.9)
-
 model2 = train_model(alexTunedClassifier, criterion, optimizer,
                        num_epochs=5)
-
+visualize_model(model2,3)
 # save the net
 torch.save(model2, "./model/alexnet-epoch5.ckpt")
