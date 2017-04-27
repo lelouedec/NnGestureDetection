@@ -1,10 +1,6 @@
 from __future__ import print_function, division
 
-import cv2
-import extract_frames as frex
 from alexnet  import *
-import transforms as tra
-import utils as utils
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
