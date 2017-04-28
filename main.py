@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import time
 import copy
 import os
-use_gpu = 0
+use_gpu = 1
 plt.ion()   # interactive mode
 os.environ['CUDA_VISIBLE_DEVICES'] = '1' #selecting the graphic processor
 cudnn.benchmark = True #-- uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms.
@@ -156,12 +156,25 @@ def visualize_model(model, num_images=3):
 
 #we use a pretrained model of Alexnet
 alexTunedClassifier = alexnet(True)
+if use_gpu:
+ 	alexTunedClassifier.cuda()
 criterion = nn.CrossEntropyLoss()
+#we dont train last layers
 optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
                      {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
                     ], lr=0.01, momentum=0.9)
+model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+torch.save(model2, "./model/alexnet-epoch5-lr_0.01_notcomplete.ckpt")
+
+#we train everything but with a lower learning rate
+optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
+
+model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+torch.save(model2, "./model/alexnet-epoch5-lr_0.001_complete.ckpt")
+
+#we reduce again the learning rate
+optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
 model2 = train_model(alexTunedClassifier, criterion, optimizer,
                        num_epochs=5)
+torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
 visualize_model(model2,3)
-# save the net
-torch.save(model2, "./model/alexnet-epoch5.ckpt")
