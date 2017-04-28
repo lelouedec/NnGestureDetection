@@ -120,8 +120,9 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
 
                 # statistics
                 running_loss += loss.data[0]
-                print('epoch %d loss: %.3f' % (epoch+1,  running_loss / 10))
-
+                print('epoch %d running_loss: %.3f, loss: %0.3f' % (epoch+1,  running_loss / 10,loss.data[0]))
+		if (running_loss > 1000000.0):
+			running_loss = 0
 
             epoch_loss = running_loss / dset_sizes[phase]
             best_model = copy.deepcopy(model)
@@ -149,6 +150,7 @@ def visualize_model(model, num_images=3):
             images_so_far += 1
             ax = plt.subplot(num_images//2, 2, images_so_far)
             ax.axis('off')
+	    #print "reality : " + `i` + " preditected : " + dset_classes[label.data[j]]
             ax.set_title('predicted: {}'.format(dset_classes[labels.data[j]]))
             imshow(inputs.cpu().data[j])
             if images_so_far == num_images:
@@ -158,13 +160,17 @@ def visualize_model(model, num_images=3):
 alexTunedClassifier = alexnet(True)
 if use_gpu:
  	alexTunedClassifier.cuda()
+
+visualize_model(model,10)
+
 criterion = nn.CrossEntropyLoss()
 #we dont train last layers
 optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
                      {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
-                    ], lr=0.01, momentum=0.9)
+                    ], lr=0.001, momentum=0.9)
+
 model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
-torch.save(model2, "./model/alexnet-epoch5-lr_0.01_notcomplete.ckpt")
+torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
 
 #we train everything but with a lower learning rate
 optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
