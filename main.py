@@ -156,12 +156,27 @@ def visualize_model(model, num_images=3):
             if images_so_far == num_images:
                 return
 
+def test(model, num_images=3)
+	images_so_far = 0
+	for i , data in enumerate(dset_loaders['val']):
+		inputs, labels = data
+		if use_gpu:
+			input, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+		else:
+			input, label = Variable(inputs), Varialbe(labels)
+		outputs = model(inputs)[1]
+		_,preds = torch.max(outputs,1)
+		for j in range(inputs.size()[0]):
+			images_so_far+=1
+			print image_so_far
+
+
 #we use a pretrained model of Alexnet
 alexTunedClassifier = alexnet(True)
 if use_gpu:
  	alexTunedClassifier.cuda()
 
-visualize_model(model,10)
+
 
 criterion = nn.CrossEntropyLoss()
 #we dont train last layers
@@ -171,6 +186,9 @@ optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
 
 model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
 torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
+
+test(model2,10)
+sys.exit(0)
 
 #we train everything but with a lower learning rate
 optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
