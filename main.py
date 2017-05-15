@@ -133,7 +133,7 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
 
-                print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
+            print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
                     phase, epoch_loss, epoch_acc, loss.data[0]))
 
             # deep copy the model
@@ -184,8 +184,8 @@ def test_model(model):
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         corrects += torch.sum(predicted == labels.data)
-        if(i %10 == 0):
-            print ("images tested:",i)
+        #if(i %10 == 0):
+           # print ("images tested:",i)
     print('Accuracy of the network on the test images: %d %%' % (
         100 * corrects / total))
 
@@ -235,13 +235,13 @@ if __name__ == '__main__':
     #we train everything but with a lower learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
 
-    model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+    model2 = train_model(model2, criterion, optimizer, num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.001_complete.ckpt")
 
     #we reduce again the learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
-    #model2 = train_model(alexTunedClassifier, criterion, optimizer,
-                           num_epochs=5)
+    model2 = train_model(model2, criterion, optimizer,num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     #visualize_model(model2,3)
     #finally we test it completly and display results for this training
+    test_model(model2)
