@@ -115,9 +115,10 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
+                print ("forward")
                 # forward
                 outputs = model(inputs)[1]
-
+                _, preds = torch.max(outputs.data, 1)
             	loss = criterion(outputs, labels)
 
                 # backward + optimize only if in training phase
@@ -127,18 +128,23 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
 
                 # statistics
                 running_loss += loss.data[0]
-                print('epoch %d running_loss: %.3f, loss: %0.3f' % (epoch+1,  running_loss / 10,loss.data[0]))
-		if (running_loss > 1000000.0):
-			running_loss = 0
+                running_corrects += torch.sum(preds == labels.data)
+                epoch_loss = running_loss / dset_sizes[phase]
+                epoch_acc = running_corrects / dset_sizes[phase]
 
-            epoch_loss = running_loss / dset_sizes[phase]
-            best_model = copy.deepcopy(model)
+                print('{} Loss: {:.4f} Acc: {:.4f}'.format(
+                    phase, epoch_loss, epoch_acc))
 
-        test_model(model)
+            # deep copy the model
+            if phase == 'val' and epoch_acc > best_acc:
+                best_acc = epoch_acc
+                best_model = copy.deepcopy(model)
 
+        print()
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
         time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
     return best_model
 
 #Function for displaying prediction for images
@@ -187,7 +193,7 @@ if __name__ == '__main__':
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
-    test_model(alexTunedClassifier)
+
     if use_gpu:
      	alexTunedClassifier.cuda()
 
@@ -217,3 +223,5 @@ if __name__ == '__main__':
                            num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     visualize_model(model2,3)
+    #finally we test it completly and display results for this training
+    test_model(model)
