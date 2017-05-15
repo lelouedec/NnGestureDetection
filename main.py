@@ -72,6 +72,12 @@ out = torchvision.utils.make_grid(inputs)
 
 #imshow(out, title=[dset_classes[x] for x in classes])
 
+def copyFeaturesParametersAlexnet(net, netBase):
+    for i, f in enumerate(net.features):
+        if type(f) is torch.nn.modules.conv.Conv2d:
+            print ("copy", f)
+            f.weight.data = netBase.features[i].weight.data
+            f.bias.data = netBase.features[i].bias.data
 
 def train_model(model, criterion, optimizer,  num_epochs=25):
     since = time.time()
@@ -155,38 +161,38 @@ def visualize_model(model, num_images=3):
             if images_so_far == num_images:
                 return
 
+if __name__ == '__main__':
+    #we use a pretrained model of Alexnet and copy only features into our model
+    alexnextmodel = alexnet(True)
+    alexTunedClassifier = AlexNet()
+    copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
+
+    if use_gpu:
+     	alexTunedClassifier.cuda()
+
+    criterion = nn.CrossEntropyLoss()
+    #we dont train last layers
+    optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
+                         {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
+                        ], lr=0.001, momentum=0.9)
+
+    model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+    torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
+    visualize_model(model2,10)
+
+    model2 = torch.load( "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
+    visualize_model(model2,10)
 
 
-#we use a pretrained model of Alexnet
-alexTunedClassifier = alexnet(True)
-if use_gpu:
- 	alexTunedClassifier.cuda()
+    #we train everything but with a lower learning rate
+    optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
 
+    model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+    torch.save(model2, "./model/alexnet-epoch5-lr_0.001_complete.ckpt")
 
-
-criterion = nn.CrossEntropyLoss()
-#we dont train last layers
-optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
-                     {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
-                    ], lr=0.001, momentum=0.9)
-
-model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
-torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
-visualize_model(model2,10)
-
-model2 = torch.load( "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
-visualize_model(model2,10)
-
-
-#we train everything but with a lower learning rate
-optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
-
-model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
-torch.save(model2, "./model/alexnet-epoch5-lr_0.001_complete.ckpt")
-
-#we reduce again the learning rate
-optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
-model2 = train_model(alexTunedClassifier, criterion, optimizer,
-                       num_epochs=5)
-torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-visualize_model(model2,3)
+    #we reduce again the learning rate
+    optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
+    model2 = train_model(alexTunedClassifier, criterion, optimizer,
+                           num_epochs=5)
+    torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    visualize_model(model2,3)
