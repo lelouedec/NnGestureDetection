@@ -168,9 +168,13 @@ def test_model(model):
     correct = 0
     total = 0
     for i,data in enumerate(dset_loaders['val']):
-        images, labels = data
-        outputs = model(Variable(images))[1]
-        _, predicted = torch.max(outputs.data, 1)
+        inputs, labels = data
+        if use_gpu:
+            inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+        else:
+            inputs, labels = Variable(inputs), Variable(labels)
+        outputs = model(inputs)[1]
+        _, predicted = torch.max(outputs, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum()
         if(i %10 == 0):
@@ -183,7 +187,7 @@ if __name__ == '__main__':
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
-
+    test_model(alexTunedClassifier)
     if use_gpu:
      	alexTunedClassifier.cuda()
 
