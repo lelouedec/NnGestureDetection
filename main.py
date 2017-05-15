@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import time
 import copy
 import os
+import sys, getopt
 use_gpu = 0
 plt.ion()   # interactive mode
 os.environ['CUDA_VISIBLE_DEVICES'] = '1' #selecting the graphic processor
@@ -188,7 +189,24 @@ def test_model(model):
     print('Accuracy of the network on the 10000 test images: %d %%' % (
         100 * correct / total))
 
+def main(argv):
+   try:
+      opts, args = getopt.getopt(argv,"hi:o:",["gpu="])
+   except getopt.GetoptError:
+      print ("correct syntax : main.py --gpu <0/1 use_gpu>")
+      sys.exit(2)
+   for opt, arg in opts:
+      if opt == '-h':
+         print ("main.py --gpu <0/1 use_gpu>")
+         sys.exit(0)
+      elif opt in ("--gpu"):
+         global use_gpu
+         use_gpu = int(arg)
+   print ('Use gpu ? ', use_gpu)
+
 if __name__ == '__main__':
+    main(sys.argv[1:])
+    print ("gpu is : ", use_gpu)
     #we use a pretrained model of Alexnet and copy only features into our model
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
@@ -201,7 +219,7 @@ if __name__ == '__main__':
     #we dont train last layers
     optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
                          {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
-                        ], lr=0.001, momentum=0.9)
+                        ], lr=0.001, momentum=0.5)
 
     model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
