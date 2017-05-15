@@ -78,6 +78,7 @@ def copyFeaturesParametersAlexnet(net, netBase):
             print ("copy", f)
             f.weight.data = netBase.features[i].weight.data
             f.bias.data = netBase.features[i].bias.data
+    print ("network copied")
 
 def train_model(model, criterion, optimizer,  num_epochs=25):
     since = time.time()
@@ -162,14 +163,18 @@ def visualize_model(model, num_images=3):
                 return
 
 def test_model(model):
+    print ("testing our model with our evaluation data")
+    model.eval()
     correct = 0
     total = 0
-    for data in dset_loaders['val']:
+    for i,data in enumerate(dset_loaders['val']):
         images, labels = data
-        outputs = model(Variable(images))
+        outputs = model(Variable(images))[1]
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum()
+        if(i %10 == 0):
+            print ("images tested:",i)
     print('Accuracy of the network on the 10000 test images: %d %%' % (
         100 * correct / total))
 
