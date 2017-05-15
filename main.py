@@ -116,7 +116,6 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
-                print ("forward")
                 # forward
                 outputs = model(inputs)[1]
                 _, preds = torch.max(outputs.data, 1)
@@ -172,7 +171,7 @@ def visualize_model(model, num_images=3):
 def test_model(model):
     print ("testing our model with our evaluation data")
     model.eval()
-    correct = 0
+    corrects = 0
     total = 0
     for i,data in enumerate(dset_loaders['val']):
         inputs, labels = data
@@ -181,13 +180,13 @@ def test_model(model):
         else:
             inputs, labels = Variable(inputs), Variable(labels)
         outputs = model(inputs)[1]
-        _, predicted = torch.max(outputs, 1)
+        _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
-        correct += (predicted == labels).sum()
+        corrects += torch.sum(predicted == labels.data)
         if(i %10 == 0):
             print ("images tested:",i)
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
+    print('Accuracy of the network on the test images: %d %%' % (
+        100 * corrects / total))
 
 def main(argv):
    try:
@@ -211,6 +210,7 @@ if __name__ == '__main__':
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
+    test_model(alexTunedClassifier)
 
     if use_gpu:
      	alexTunedClassifier.cuda()
@@ -242,4 +242,3 @@ if __name__ == '__main__':
     torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     visualize_model(model2,3)
     #finally we test it completly and display results for this training
-    test_model(model)
