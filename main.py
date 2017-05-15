@@ -170,13 +170,13 @@ def visualize_model(model, num_images=3):
 
 def test_model(model):
     print ("testing our model with our evaluation data")
-    model.eval()
+    model.train(False)
     corrects = 0
     total = 0
     for i,data in enumerate(dset_loaders['val']):
         inputs, labels = data
         if use_gpu:
-            inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
+            inputs, labels = Variable(inputs.cuda(device=gpus[0])), Variable(labels.cuda(device=gpus[0]))
         else:
             inputs, labels = Variable(inputs), Variable(labels)
         outputs = model(inputs)[1]
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     test_model(alexTunedClassifier)
 
     if use_gpu:
-     	alexTunedClassifier.cuda()
+     	alexTunedClassifier.cuda(device=gpus[0])
 
     criterion = nn.CrossEntropyLoss()
     #we dont train last layers
