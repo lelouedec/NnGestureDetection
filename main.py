@@ -133,7 +133,7 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
             epoch_loss = running_loss / dset_sizes[phase]
             best_model = copy.deepcopy(model)
 
-        print()
+        test_model(model)
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(
@@ -160,6 +160,18 @@ def visualize_model(model, num_images=3):
             imshow(inputs.cpu().data[j])
             if images_so_far == num_images:
                 return
+
+def test_model(model):
+    correct = 0
+    total = 0
+    for data in dset_loaders['val']:
+        images, labels = data
+        outputs = model(Variable(images))
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum()
+    print('Accuracy of the network on the 10000 test images: %d %%' % (
+        100 * correct / total))
 
 if __name__ == '__main__':
     #we use a pretrained model of Alexnet and copy only features into our model
