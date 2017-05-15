@@ -211,10 +211,11 @@ if __name__ == '__main__':
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
-    test_model(alexTunedClassifier)
-
+    
     if use_gpu:
-     	alexTunedClassifier.cuda(device=gpus[0])
+     	alexTunedClassifier.cuda()
+
+    test_model(alexTunedClassifier)
 
     criterion = nn.CrossEntropyLoss()
     #we dont train last layers
@@ -224,11 +225,12 @@ if __name__ == '__main__':
 
     model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
-    visualize_model(model2,10)
-
+   # visualize_model(model2,10)
+    test_model(model2)
     model2 = torch.load( "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
-    visualize_model(model2,10)
-
+   # visualize_model(model2,10)
+    if(use_gpu):
+    	model2.cuda()
 
     #we train everything but with a lower learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
@@ -238,8 +240,8 @@ if __name__ == '__main__':
 
     #we reduce again the learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
-    model2 = train_model(alexTunedClassifier, criterion, optimizer,
+    #model2 = train_model(alexTunedClassifier, criterion, optimizer,
                            num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    visualize_model(model2,3)
+    #visualize_model(model2,3)
     #finally we test it completly and display results for this training
