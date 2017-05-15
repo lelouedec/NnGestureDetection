@@ -132,8 +132,8 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
 
-                print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                    phase, epoch_loss, epoch_acc))
+                print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
+                    phase, epoch_loss, epoch_acc, loss.data[0]))
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:
