@@ -270,8 +270,10 @@ def test_image(directory,network):
     else:
         inp = Variable(transform(Image.open(imgPath).resize((imSize,imSize), Image.BILINEAR)).unsqueeze(0), volatile=True)
     logit = model(inp)[0]
-    _,exp = torch.max(logit.data,1)
-    print (exp)
+    output = f.softmax(logit).data.squeeze()
+    probs , idx = output.sort(0,True)
+    for i in range(0,10):
+	print('{:.3f} -> {}'.format(probs[i], idx[i]))
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
@@ -280,4 +282,9 @@ if __name__ == '__main__':
     main(sys.argv[1:])
     #train_from_scratch()
     #test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
+    print ("test class 1 ")
     test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print ("test class 2")
+    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print("test class 3")
+    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
