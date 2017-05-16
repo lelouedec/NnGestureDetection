@@ -251,10 +251,10 @@ def test_network(network):
         model.cuda()
     test_model(model)
 def test_image(directory,network):
-    since = time.time()
     image = random_file(directory)
     classes = ["1","2","3","4","5"]
     model = torch.load(network)
+    since = time.time()
     if( use_gpu):
         model.cuda()
     model.eval()
@@ -266,10 +266,11 @@ def test_image(directory,network):
     ])
     imgPath = directory+image
     if (use_gpu):
-        inp = Variable(transform[Image.open(imgPath)].cuda(device=gpus[0]))
+        inp = Variable(transform(Image.open(imgPath)).unsqueeze(0).cuda(device=gpus[0]), volatile=True)
     else:
-        inp = Variable(transform(Image.open(imgPath)))
+        inp = Variable(transform(Image.open(imgPath)).unsqueeze(0), volatile=True)
     logit = model(inp)[0]
+    print (logit)
     proba,pred = torch.max(logit.data,1)
     print (proba[0][0])
     print (pred[0][0])
@@ -279,11 +280,11 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    train_from_scratch()
+    #train_from_scratch()
     #test_network("./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print ("test class 1 ")
-    #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print ("test class 2")
-    #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print("test class 3")
-    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print ("test class 1 ")
+    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print ("test class 2")
+    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print("test class 3")
+    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
