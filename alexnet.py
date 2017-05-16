@@ -37,11 +37,12 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, num_classes),
         )
-
+    output = 0
     def forward(self, inputs):
         feat = self.features(inputs)
         feat = feat.view(feat.size(0), 256 * 6 * 6)
         clas = self.classifier(feat)
+        output = feat
         return feat, clas
 
 def alexnet(pretrained):

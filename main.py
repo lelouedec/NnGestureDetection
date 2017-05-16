@@ -74,6 +74,18 @@ inputs, classes = next(iter(dset_loaders['train']))
 out = torchvision.utils.make_grid(inputs)
 
 #imshow(out, title=[dset_classes[x] for x in classes])
+def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
+    """Decay learning rate by a factor of 0.1 every lr_decay_epoch epochs."""
+    lr = init_lr * (0.1**(epoch // lr_decay_epoch))
+
+    if epoch % lr_decay_epoch == 0:
+        print('LR is set to {}'.format(lr))
+
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
+
+    return optimizer
+
 
 def copyFeaturesParametersAlexnet(net, netBase):
     for i, f in enumerate(net.features):
@@ -232,6 +244,7 @@ def train_from_scratch():
     if(use_gpu):
     	model2.cuda()
 
+     print(model2.model)
     #we train everything but with a lower learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
 
