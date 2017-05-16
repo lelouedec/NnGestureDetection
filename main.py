@@ -17,6 +17,7 @@ import time
 import copy
 import os
 import sys, getopt
+from Utils import *
 use_gpu = 0
 gpus=[0,1,2]
 plt.ion()   # interactive mode
@@ -203,7 +204,7 @@ def main(argv):
          global use_gpu
          use_gpu = int(arg)
    print ('Use gpu ? ', use_gpu)
-   
+
 def train_from_scratch():
     print ("gpu is : ", use_gpu)
     #we use a pretrained model of Alexnet and copy only features into our model
@@ -245,10 +246,37 @@ def train_from_scratch():
     #finally we test it completly and display results for this training
     test_model(model2)
 def test_network(network):
-    model = torch.load( network)
-    model.cuda()
+    model = torch.load(network)
+    if( use_gpu):
+        model.cuda()
     test_model(model)
+def test_image(directory,network):
+    since = time.time()
+    image = random_file(directory)
+    classes = ["1","2","3","4","5"]
+    model = torch.load(network)
+    if( use_gpu):
+        model.cuda()
+    model.eval()
+    transform = tra.Compose([
+        tra.ToTensor(),
+        tra.Normalize(mean = [ 0.485, 0.456, 0.406 ],
+                             std = [ 0.229, 0.224, 0.225 ]),
+    ])
+
+    imgPath = directory+image
+    inp = Variable(transform(Image.open(imgPath).resize((imSize, imSize), Image.BILINEAR)).unsqueeze(0), volatile=True)
+    logit = model(inp)
+    output = f.softmax(logit).data.squeeze()
+    probs, idx = output.sort(0, True)
+    for i in range(0, 20):
+        print('{:.3f}-> {}'.format(probs[i], classes[idx[i]]))
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+
 if __name__ == '__main__':
     main(sys.argv[1:])
-    train_from_scratch()
+    #train_from_scratch()
     #test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
+    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
