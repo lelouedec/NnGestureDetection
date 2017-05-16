@@ -259,32 +259,31 @@ def test_image(directory,network):
         model.cuda()
     model.eval()
     transform = transforms.Compose([
+        transforms.Scale(256),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
-        transforms.Normalize(mean = [ 0.485, 0.456, 0.406 ],
-                             std = [ 0.229, 0.224, 0.225 ]),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-
     imgPath = directory+image
     if (use_gpu):
-        inp = Variable(transform(Image.open(imgPath).resize((imSize, imSize), Image.BILINEAR)).unsqueeze(0).cuda(device=gpus[0]), volatile=True)
+        inp = Variable(transform[Image.open(imgPath)].cuda(device=gpus[0]))
     else:
-        inp = Variable(transform(Image.open(imgPath).resize((imSize,imSize), Image.BILINEAR)).unsqueeze(0), volatile=True)
+        inp = Variable(transform(Image.open(imgPath)))
     logit = model(inp)[0]
-    output = f.softmax(logit).data.squeeze()
-    probs , idx = output.sort(0,True)
-    for i in range(0,10):
-	print('{:.3f} -> {}'.format(probs[i], idx[i]))
+    proba,pred = torch.max(logit.data,1)
+    print (proba[0][0])
+    print (pred[0][0])
 
     time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed ))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    #train_from_scratch()
-    #test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
-    print ("test class 1 ")
-    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print ("test class 2")
-    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print("test class 3")
-    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    train_from_scratch()
+    #test_network("./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print ("test class 1 ")
+    #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print ("test class 2")
+    #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print("test class 3")
+    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
