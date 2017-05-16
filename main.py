@@ -203,11 +203,8 @@ def main(argv):
          global use_gpu
          use_gpu = int(arg)
    print ('Use gpu ? ', use_gpu)
+   
 def train_from_scratch():
-<<<<<<< HEAD
-=======
-    main(sys.argv[1:])
->>>>>>> 0a8b322d837da60483461f984c9a64ade5f4ce98
     print ("gpu is : ", use_gpu)
     #we use a pretrained model of Alexnet and copy only features into our model
     alexnextmodel = alexnet(True)
@@ -249,14 +246,9 @@ def train_from_scratch():
     test_model(model2)
 def test_network(network):
     model = torch.load( network)
-<<<<<<< HEAD
     model.cuda()
     test_model(model)
 if __name__ == '__main__':
-    main(sys.argv[1:])    
-=======
-    test_model(model)
-if __name__ == '__main__':
->>>>>>> 0a8b322d837da60483461f984c9a64ade5f4ce98
+    main(sys.argv[1:])
     #train_from_scratch()
     test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
