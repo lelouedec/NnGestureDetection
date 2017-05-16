@@ -250,5 +250,5 @@ def test_network(network):
     test_model(model)
 if __name__ == '__main__':
     main(sys.argv[1:])
-    #train_from_scratch()
-    test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
+    train_from_scratch()
+    #test_network("./model/alexnet-epoch5-lr_0.001_complete.ckpt")
