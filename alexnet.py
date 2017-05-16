@@ -11,7 +11,7 @@ model_urls = {
 
 
 class AlexNet(nn.Module):
-    def __init__(self, num_classes=1000):
+    def __init__(self, num_classes=1005):
         super(AlexNet, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
@@ -37,12 +37,12 @@ class AlexNet(nn.Module):
             nn.ReLU(inplace=True),
             nn.Linear(4096, num_classes),
         )
-    output = 0
     def forward(self, inputs):
         feat = self.features(inputs)
         feat = feat.view(feat.size(0), 256 * 6 * 6)
         clas = self.classifier(feat)
-        output = feat
+	#print (clas)
+        #print (feat)
         return feat, clas
 
 def alexnet(pretrained):

@@ -13,7 +13,7 @@ import pickle, os, glob
 import torch.backends.cudnn as cudnn
 from PIL import Image
 import matplotlib.pyplot as plt
-import time
+from datetime import datetime
 import copy
 import os
 import sys, getopt
@@ -145,7 +145,7 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 running_corrects += torch.sum(preds == labels.data)
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
-
+		
             print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
                     phase, epoch_loss, epoch_acc, loss.data[0]))
 
@@ -227,7 +227,7 @@ def train_from_scratch():
     if use_gpu:
      	alexTunedClassifier.cuda()
 
-    test_model(alexTunedClassifier)
+    #test_model(alexTunedClassifier)
 
     criterion = nn.CrossEntropyLoss()
     #we dont train last layers
@@ -244,7 +244,6 @@ def train_from_scratch():
     if(use_gpu):
     	model2.cuda()
 
-     print(model2.model)
     #we train everything but with a lower learning rate
     optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
 
@@ -267,7 +266,7 @@ def test_image(directory,network):
     image = random_file(directory)
     classes = ["1","2","3","4","5"]
     model = torch.load(network)
-    since = time.time()
+    since = datetime.now()
     if( use_gpu):
         model.cuda()
     model.eval()
@@ -282,14 +281,14 @@ def test_image(directory,network):
         inp = Variable(transform(Image.open(imgPath)).unsqueeze(0).cuda(device=gpus[0]), volatile=True)
     else:
         inp = Variable(transform(Image.open(imgPath)).unsqueeze(0), volatile=True)
-    logit = model(inp)[0]
-    print (logit)
+    logit = model(inp)[1]
     proba,pred = torch.max(logit.data,1)
-    print (proba[0][0])
-    print (pred[0][0])
+    #print (proba[0][0])
+    #print (pred[0][0])
+    print ("result : {:.3f} for {}".format(proba[0][0],classes[pred[0][0]]))
 
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed ))
+    time_elapsed = datetime.now() - since
+    print('Training complete in {}ms'.format(time_elapsed.microseconds ))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
