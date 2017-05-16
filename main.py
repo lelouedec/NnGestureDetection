@@ -258,19 +258,20 @@ def test_image(directory,network):
     if( use_gpu):
         model.cuda()
     model.eval()
-    transform = tra.Compose([
-        tra.ToTensor(),
-        tra.Normalize(mean = [ 0.485, 0.456, 0.406 ],
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(mean = [ 0.485, 0.456, 0.406 ],
                              std = [ 0.229, 0.224, 0.225 ]),
     ])
 
     imgPath = directory+image
-    inp = Variable(transform(Image.open(imgPath).resize((imSize, imSize), Image.BILINEAR)).unsqueeze(0), volatile=True)
-    logit = model(inp)
-    output = f.softmax(logit).data.squeeze()
-    probs, idx = output.sort(0, True)
-    for i in range(0, 20):
-        print('{:.3f}-> {}'.format(probs[i], classes[idx[i]]))
+    if (use_gpu):
+        inp = Variable(transform(Image.open(imgPath).resize((imSize, imSize), Image.BILINEAR)).unsqueeze(0).cuda(device=gpus[0]), volatile=True)
+    else:
+        inp = Variable(transform(Image.open(imgPath).resize((imSize,imSize), Image.BILINEAR)).unsqueeze(0), volatile=True)
+    logit = model(inp)[0]
+    _,exp = torch.max(logit.data,1)
+    print (exp)
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
