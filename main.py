@@ -145,7 +145,7 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 running_corrects += torch.sum(preds == labels.data)
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
-		
+
             print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
                     phase, epoch_loss, epoch_acc, loss.data[0]))
 
@@ -264,7 +264,7 @@ def test_network(network):
     test_model(model)
 def test_image(directory,network):
     image = random_file(directory)
-    classes = ["1","2","3","4","5"]
+    classes = ["poiting(1)","ok(2)","good(3)","fist(4)","palm(5)"]
     model = torch.load(network)
     since = datetime.now()
     if( use_gpu):
@@ -288,7 +288,7 @@ def test_image(directory,network):
     print ("result : {:.3f} for {}".format(proba[0][0],classes[pred[0][0]]))
 
     time_elapsed = datetime.now() - since
-    print('Training complete in {}ms'.format(time_elapsed.microseconds ))
+    print('Training complete in {}millisseconds'.format(time_elapsed.microseconds/1000 ))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
