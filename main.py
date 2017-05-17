@@ -143,6 +143,8 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 # statistics
                 running_loss += loss.data[0]
                 running_corrects += torch.sum(preds == labels.data)
+		#if( preds != labels.data):
+		#	print ( "predicted : {}, reality : {}".format(preds, labels.data) 
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
 
@@ -187,6 +189,8 @@ def test_model(model):
     model.train(False)
     corrects = 0
     total = 0
+    hist_erreur = [0,0,0,0,0]
+    nb_erreurs =[ [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0] ]
     for i,data in enumerate(dset_loaders['val']):
         inputs, labels = data
         if use_gpu:
@@ -197,10 +201,14 @@ def test_model(model):
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         corrects += torch.sum(predicted == labels.data)
-        #if(i %10 == 0):
-           # print ("images tested:",i)
+	for i in range(0,predicted.size()[0]):
+            if( not predicted[i][0]==labels.data[i]): 
+	       hist_erreur[labels.data[i]]= hist_erreur[labels.data[i]] + 1 
+	       nb_erreurs[labels.data[i]][predicted[i][0]] = nb_erreurs[labels.data[i]][predicted[i][0]] + 1
     print('Accuracy of the network on the test images: %d %%' % (
         100 * corrects / total))
+    print (hist_erreur)
+    print (nb_erreurs)
 
 def main(argv):
    try:
@@ -298,10 +306,10 @@ def test_image(directory,network):
 if __name__ == '__main__':
     main(sys.argv[1:])
     #train_from_scratch()
-    #test_network("./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     #print ("test class 2")
     #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print("test class 3")
-    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print("test class 3")
+    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
