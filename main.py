@@ -87,14 +87,6 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
     return optimizer
 
 
-def copyFeaturesParametersAlexnet(net, netBase):
-    for i, f in enumerate(net.features):
-        if type(f) is torch.nn.modules.conv.Conv2d:
-            print ("copy", f)
-            f.weight.data = netBase.features[i].weight.data
-            f.bias.data = netBase.features[i].bias.data
-    print ("network copied")
-
 def train_model(model, criterion, optimizer,  num_epochs=25):
     since = datetime.now()
 
@@ -144,7 +136,7 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 running_loss += loss.data[0]
                 running_corrects += torch.sum(preds == labels.data)
 		#if( preds != labels.data):
-		#	print ( "predicted : {}, reality : {}".format(preds, labels.data) 
+		#	print ( "predicted : {}, reality : {}".format(preds, labels.data)
                 epoch_loss = running_loss / dset_sizes[phase]
                 epoch_acc = running_corrects / dset_sizes[phase]
 
@@ -202,8 +194,8 @@ def test_model(model):
         total += labels.size(0)
         corrects += torch.sum(predicted == labels.data)
 	for i in range(0,predicted.size()[0]):
-            if( not predicted[i][0]==labels.data[i]): 
-	       hist_erreur[labels.data[i]]= hist_erreur[labels.data[i]] + 1 
+            if( not predicted[i][0]==labels.data[i]):
+	       hist_erreur[labels.data[i]]= hist_erreur[labels.data[i]] + 1
 	       nb_erreurs[labels.data[i]][predicted[i][0]] = nb_erreurs[labels.data[i]][predicted[i][0]] + 1
     print('Accuracy of the network on the test images: %d %%' % (
         100 * corrects / total))
@@ -269,6 +261,10 @@ def train_from_scratch():
     optimizer = optim.SGD(model2.parameters(), lr=0.00001, momentum=0.9)
     model2 = train_model(model2,criterion, optimizer,num_epochs=5)
     torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
+
+    optimizer = optim.SGD(lr=0.00001, momentum=0.9)
+    model2 = train_model(model2,criterion, optimizer,num_epochs=5)
+    torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_full.ckpt")
 
 def test_network(network):
     model = torch.load(network)
