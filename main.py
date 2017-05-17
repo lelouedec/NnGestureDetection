@@ -51,7 +51,7 @@ data_transforms = {
 
 dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=4, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=100, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
 dset_classes = dsets['train'].classes
@@ -96,7 +96,7 @@ def copyFeaturesParametersAlexnet(net, netBase):
     print ("network copied")
 
 def train_model(model, criterion, optimizer,  num_epochs=25):
-    since = time.time()
+    since = datetime.now()
 
     best_model = model
     best_acc = 0.0
@@ -155,9 +155,9 @@ def train_model(model, criterion, optimizer,  num_epochs=25):
                 best_model = copy.deepcopy(model)
 
         print()
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
+    time_elapsed = datetime.now() - since
+    print('Training complete in {:.0f}ms '.format(
+        time_elapsed.microseconds /1000))
     print('Best val Acc: {:4f}'.format(best_acc))
     return best_model
 
@@ -222,6 +222,7 @@ def train_from_scratch():
     #we use a pretrained model of Alexnet and copy only features into our model
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
+    alexTunedClassifier.fc = nn.Linear(4096, 5)
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
 
     if use_gpu:
@@ -257,6 +258,10 @@ def train_from_scratch():
     #visualize_model(model2,3)
     #finally we test it completly and display results for this training
     test_model(model2)
+    optimizer = optim.SGD(model2.parameters(), lr=0.00001, momentum=0.9)
+    model2 = train_model(model2,criterion, optimizer,num_epochs=5)
+    torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
+
 def test_network(network):
     model = torch.load(network)
     if( use_gpu):
@@ -292,11 +297,11 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    #train_from_scratch()
+    train_from_scratch()
     #test_network("./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print ("test class 1 ")
-    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print ("test class 2")
-    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    print("test class 3")
-    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print ("test class 1 ")
+    #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print ("test class 2")
+    #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #print("test class 3")
+    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
