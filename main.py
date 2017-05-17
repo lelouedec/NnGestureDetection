@@ -297,11 +297,11 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    train_from_scratch()
+    #train_from_scratch()
     #test_network("./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     #print ("test class 2")
     #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print("test class 3")
-    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    print("test class 3")
+    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
