@@ -1,5 +1,8 @@
 from os import listdir
 from random import choice
+import torch as torch
+import numpy as np
+import torch.nn as nn
 
 ext2conttype = {"jpg": "image/jpeg",
                 "jpeg": "image/jpeg",

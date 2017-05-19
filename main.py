@@ -87,7 +87,7 @@ def exp_lr_scheduler(optimizer, epoch, init_lr=0.001, lr_decay_epoch=7):
     return optimizer
 
 
-def train_model(model, criterion, optimizer,  num_epochs=25):
+def train_model(model, criterion, optimizer, num_epochs=25):
     since = datetime.now()
 
     best_model = model
@@ -181,8 +181,9 @@ def test_model(model):
     model.train(False)
     corrects = 0
     total = 0
-    hist_erreur = [0,0,0,0,0]
-    nb_erreurs =[ [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0], [0,0,0,0,0] ]
+    hist_erreur = [0,0,0,0,0,0]
+    nb_erreurs =[ [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0],
+    [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0]  ]
     for i,data in enumerate(dset_loaders['val']):
         inputs, labels = data
         if use_gpu:
@@ -190,7 +191,7 @@ def test_model(model):
         else:
             inputs, labels = Variable(inputs), Variable(labels)
         outputs = model(inputs)[1]
-        _, predicted = torch.max(outputs.data, 1)
+        ald, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         corrects += torch.sum(predicted == labels.data)
 	for i in range(0,predicted.size()[0]):
@@ -222,9 +223,9 @@ def train_from_scratch():
     #we use a pretrained model of Alexnet and copy only features into our model
     alexnextmodel = alexnet(True)
     alexTunedClassifier = AlexNet()
-    alexTunedClassifier.fc = nn.Linear(4096, 5)
     copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
-
+    alexTunedClassifier.fc = nn.Linear(4096, 6)
+    
     if use_gpu:
      	alexTunedClassifier.cuda()
 
@@ -240,31 +241,36 @@ def train_from_scratch():
     torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
    # visualize_model(model2,10)
     test_model(model2)
-    model2 = torch.load( "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
-   # visualize_model(model2,10)
-    if(use_gpu):
-    	model2.cuda()
-
-    #we train everything but with a lower learning rate
-    optimizer=optim.SGD(model2.parameters(), lr=0.001, momentum=0.9)
-
-    model2 = train_model(model2, criterion, optimizer, num_epochs=5)
-    torch.save(model2, "./model/alexnet-epoch5-lr_0.001_complete.ckpt")
+    lre = 0.001
+    for i in range(0,20):
+   #we train everything but with a lower learning rate
+         optimizer=optim.SGD(model2.parameters(), lr=lre, momentum=0.9)
+         model2 = train_model(model2, criterion, optimizer, num_epochs=5)
+         torch.save(model2, "./model/alexnet-epoch5-lr_"+`lre` +"_complete.ckpt")
+	 if( i % 5 == 0 ):
+             lre = lre / 10
 
     #we reduce again the learning rate
-    optimizer=optim.SGD(model2.parameters(), lr=0.0001, momentum=0.9)
-    model2 = train_model(model2, criterion, optimizer,num_epochs=5)
-    torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #optimizer=optim.SGD(model2.parameters(), lr=0.00001,momentum=0.9)
+    #model2 = train_model(model2, criterion, optimizer,num_epochs=5)
+    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
     #visualize_model(model2,3)
     #finally we test it completly and display results for this training
-    test_model(model2)
-    optimizer = optim.SGD(model2.parameters(), lr=0.00001, momentum=0.9)
-    model2 = train_model(model2,criterion, optimizer,num_epochs=5)
-    torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
+    #test_model(model2)
+    #optimizer = optim.SGD(model2.parameters(), lr=0.000001, momentum=0.9)
+    #model2 = train_model(model2,criterion, optimizer,num_epochs=5)
+    #torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
 
-    optimizer = optim.SGD(lr=0.00001, momentum=0.9)
-    model2 = train_model(model2,criterion, optimizer,num_epochs=5)
-    torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_full.ckpt")
+    #optimizer = optim.SGD(model2.parameters(), lr=0.00000001, momentum=0.9)
+    #model2 = train_model(model2,criterion, optimizer,num_epochs=5)
+    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0000001_complete.ckpt")
+
+    #optimizer=optim.SGD(model2.parameters(), lr=0.0000000001, momentum=0.9)
+
+    #model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
+    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0000000001_complete.ckpt")
+
+
 
 def test_network(network):
     model = torch.load(network)
@@ -273,7 +279,7 @@ def test_network(network):
     test_model(model)
 def test_image(directory,network):
     image = random_file(directory)
-    classes = ["poiting(1)","ok(2)","good(3)","fist(4)","palm(5)"]
+    classes = ["poiting(1)","ok(2)","good(3)","fist(4)","palm(5)","no hand(6)"]
     model = torch.load(network)
     since = datetime.now()
     if( use_gpu):
@@ -302,10 +308,12 @@ def test_image(directory,network):
 if __name__ == '__main__':
     main(sys.argv[1:])
     #train_from_scratch()
-    test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
-    #print ("test class 1 ")
-    #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print ("test class 2")
-    #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #print("test class 3")
-    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
+    #test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
+    print ("test class 1 ")
+    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    print ("test class 2")
+    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    print("test class 3")
+    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    print("test no a hand")
+    test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
