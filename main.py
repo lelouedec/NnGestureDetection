@@ -24,7 +24,7 @@ from Utils import *
 use_gpu = 0
 gpus=[0,1,2]
 plt.ion()   # interactive mode
-os.environ['CUDA_VISIBLE_DEVICES'] = '0' #selecting the graphic processor
+os.environ['CUDA_VISIBLE_DEVICES'] = '1' #selecting the graphic processor
 cudnn.benchmark = True #-- uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms.
                        #-- If this is set to false, uses some in-built heuristics that might not always be fastest.
 
@@ -236,7 +236,7 @@ def train_from_scratch(model_name):
         optimizer=optim.SGD([{'params': model.classifier.parameters()},
                              {'params': model.features.parameters(), 'lr': 0.0}
                             ], lr=0.001, momentum=0.5)
-    elif( model_name == "resnet"):
+    elif( model_name == "resnet18"):
         resnetmodel = resnet18(True)
         model = ResNet(BasicBlock, [2, 2, 2, 2])
         copyFeaturesParametersResnet(model, resnetmodel,2, 2, 2, 2,"BasicBlock")
@@ -256,9 +256,30 @@ def train_from_scratch(model_name):
             {'params': model.avgpool.parameters()},
             {'params': model.fc.parameters(), 'lr': 0.0}
         ], lr=0.001, momentum=0.5)
+    elif( model_name == "resnet34"):
+        resnetmodel = resnet18(True)
+        model = ResNet(BasicBlock, [3, 4, 6, 3])
+        copyFeaturesParametersResnet(model, resnetmodel,2, 2, 2, 2,"BasicBlock")
+        model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
+        if use_gpu:
+                model.cuda()
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD([
+            {'params': model.conv1.parameters()},
+            {'params': model.bn1.parameters()},
+            {'params': model.relu.parameters()},
+            {'params': model.maxpool.parameters()},
+            {'params': model.layer1.parameters()},
+            {'params': model.layer2.parameters()},
+            {'params': model.layer3.parameters()},
+            {'params': model.layer4.parameters()},
+            {'params': model.avgpool.parameters()},
+            {'params': model.fc.parameters(), 'lr': 0.0}
+        ], lr=0.001, momentum=0.5)
 
 
-    model2 = train_model(model, criterion, optimizer, num_epochs=5)
+
+    model2,_ = train_model(model, criterion, optimizer, num_epochs=5)
     torch.save(model2, "./model/"+model_name+"-epoch5-lr_0.001_notcomplete.ckpt")
    # visualize_model(model2,10)
     test_model(model2)
@@ -273,9 +294,9 @@ def train_from_scratch(model_name):
          torch.save(model2, "./model/"+model_name+"-epoch5-lr_"+`lre` +"_complete.ckpt")
          if( i % 5 == 0 ):
              lre = lre / 10
-         if( not last_acc == acc ):
-             if( abs(last_acc - acc) < 0.1):
-                 break
+         #if( not last_acc == acc ):
+          #   if( abs(last_acc - acc) < 0.1):
+           #      break
 
 
 def test_network(network):
@@ -313,7 +334,7 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    train_from_scratch("resnet")
+    train_from_scratch("resnet34")
     #test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
