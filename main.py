@@ -259,7 +259,27 @@ def train_from_scratch(model_name):
     elif( model_name == "resnet34"):
         resnetmodel = resnet18(True)
         model = ResNet(BasicBlock, [3, 4, 6, 3])
-        copyFeaturesParametersResnet(model, resnetmodel,2, 2, 2, 2,"BasicBlock")
+        copyFeaturesParametersResnet(model, resnetmodel,3, 4, 6, 3,"BasicBlock")
+        model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
+        if use_gpu:
+                model.cuda()
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD([
+            {'params': model.conv1.parameters()},
+            {'params': model.bn1.parameters()},
+            {'params': model.relu.parameters()},
+            {'params': model.maxpool.parameters()},
+            {'params': model.layer1.parameters()},
+            {'params': model.layer2.parameters()},
+            {'params': model.layer3.parameters()},
+            {'params': model.layer4.parameters()},
+            {'params': model.avgpool.parameters()},
+            {'params': model.fc.parameters(), 'lr': 0.0}
+        ], lr=0.001, momentum=0.5)
+    elif( model_name == "resnet50"):
+        resnetmodel = resnet18(True)
+        model = ResNet(Bottleneck, [3, 4, 6, 3])
+        copyFeaturesParametersResnet(model, resnetmodel,3, 4, 6, 3,"Bottleneck")
         model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
         if use_gpu:
                 model.cuda()
