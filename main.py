@@ -31,8 +31,6 @@ cudnn.benchmark = True #-- uses the inbuilt cudnn auto-tuner to find the fastest
 cudnn.fastest = True #-- this is like the :fastest() mode for the Convolution modules,
                      #-- simply picks the fastest convolution algorithm, rather than tuning for workspace size
 imSize = 225
-batchSize = 32
-nb_epoch = 50
 
 
 data_dir	 = "./dataset/"
@@ -54,7 +52,7 @@ data_transforms = {
 
 dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=100, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=64, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
 dset_classes = dsets['train'].classes
@@ -257,7 +255,7 @@ def train_from_scratch(model_name):
             {'params': model.fc.parameters(), 'lr': 0.0}
         ], lr=0.001, momentum=0.5)
     elif( model_name == "resnet34"):
-        resnetmodel = resnet18(True)
+        resnetmodel = resnet34(True)
         model = ResNet(BasicBlock, [3, 4, 6, 3])
         copyFeaturesParametersResnet(model, resnetmodel,3, 4, 6, 3,"BasicBlock")
         model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
