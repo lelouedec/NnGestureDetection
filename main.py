@@ -1,6 +1,8 @@
 from __future__ import print_function, division
 
 from alexnet  import *
+from resnet import *
+from resnet import BasicBlock
 import torch
 import torch.nn as nn
 import torch.nn.functional as f
@@ -18,6 +20,7 @@ import copy
 import os
 import sys, getopt
 from Utils import *
+
 use_gpu = 0
 gpus=[0,1,2]
 plt.ion()   # interactive mode
@@ -153,7 +156,7 @@ def train_model(model, criterion, optimizer, num_epochs=25):
     print('Training complete in {:.0f}ms '.format(
         time_elapsed.microseconds /1000))
     print('Best val Acc: {:4f}'.format(best_acc))
-    return best_model
+    return best_model,best_acc
 
 #Function for displaying prediction for images
 def visualize_model(model, num_images=3):
@@ -218,58 +221,61 @@ def main(argv):
          use_gpu = int(arg)
    print ('Use gpu ? ', use_gpu)
 
-def train_from_scratch():
+def train_from_scratch(model_name):
     print ("gpu is : ", use_gpu)
     #we use a pretrained model of Alexnet and copy only features into our model
-    alexnextmodel = alexnet(True)
-    alexTunedClassifier = AlexNet()
-    copyFeaturesParametersAlexnet(alexTunedClassifier, alexnextmodel)
-    alexTunedClassifier.fc = nn.Linear(4096, 6)
-    
-    if use_gpu:
-     	alexTunedClassifier.cuda()
+    if( model_name == "alexnet"):
+        alexnextmodel = alexnet(True)
+        model = AlexNet()
+        copyFeaturesParametersAlexnet(model, alexnextmodel)
+        model.fc = nn.Linear(4096, 6)
+        if use_gpu:
+         	model.cuda()
+        criterion = nn.CrossEntropyLoss()
+        #we dont train last layers
+        optimizer=optim.SGD([{'params': model.classifier.parameters()},
+                             {'params': model.features.parameters(), 'lr': 0.0}
+                            ], lr=0.001, momentum=0.5)
+    elif( model_name == "resnet"):
+        resnetmodel = resnet18(True)
+        model = ResNet(BasicBlock, [2, 2, 2, 2])
+        copyFeaturesParametersResnet(model, resnetmodel,2, 2, 2, 2,"BasicBlock")
+        model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
+        if use_gpu:
+         	model.cuda()
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD([
+            {'params': model.conv1.parameters()},
+            {'params': model.bn1.parameters()},
+            {'params': model.relu.parameters()},
+            {'params': model.maxpool.parameters()},
+            {'params': model.layer1.parameters()},
+            {'params': model.layer2.parameters()},
+            {'params': model.layer3.parameters()},
+            {'params': model.layer4.parameters()},
+            {'params': model.avgpool.parameters()},
+            {'params': model.fc.parameters(), 'lr': 0.0}
+        ], lr=0.001, momentum=0.5)
 
-    #test_model(alexTunedClassifier)
 
-    criterion = nn.CrossEntropyLoss()
-    #we dont train last layers
-    optimizer=optim.SGD([{'params': alexTunedClassifier.classifier.parameters()},
-                         {'params': alexTunedClassifier.features.parameters(), 'lr': 0.0}
-                        ], lr=0.001, momentum=0.5)
-
-    model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
-    torch.save(model2, "./model/alexnet-epoch5-lr_0.001_notcomplete.ckpt")
+    model2 = train_model(model, criterion, optimizer, num_epochs=5)
+    torch.save(model2, "./model/"+model_name+"-epoch5-lr_0.001_notcomplete.ckpt")
    # visualize_model(model2,10)
     test_model(model2)
     lre = 0.001
+    last_acc = 0.0
+    acc = 0.0
     for i in range(0,20):
    #we train everything but with a lower learning rate
          optimizer=optim.SGD(model2.parameters(), lr=lre, momentum=0.9)
-         model2 = train_model(model2, criterion, optimizer, num_epochs=5)
-         torch.save(model2, "./model/alexnet-epoch5-lr_"+`lre` +"_complete.ckpt")
-	 if( i % 5 == 0 ):
+         last_acc = acc
+         model2,acc = train_model(model2, criterion, optimizer, num_epochs=5)
+         torch.save(model2, "./model/"+model_name+"-epoch5-lr_"+`lre` +"_complete.ckpt")
+         if( i % 5 == 0 ):
              lre = lre / 10
-
-    #we reduce again the learning rate
-    #optimizer=optim.SGD(model2.parameters(), lr=0.00001,momentum=0.9)
-    #model2 = train_model(model2, criterion, optimizer,num_epochs=5)
-    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0001_complete.ckpt")
-    #visualize_model(model2,3)
-    #finally we test it completly and display results for this training
-    #test_model(model2)
-    #optimizer = optim.SGD(model2.parameters(), lr=0.000001, momentum=0.9)
-    #model2 = train_model(model2,criterion, optimizer,num_epochs=5)
-    #torch.save(model2, "./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
-
-    #optimizer = optim.SGD(model2.parameters(), lr=0.00000001, momentum=0.9)
-    #model2 = train_model(model2,criterion, optimizer,num_epochs=5)
-    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0000001_complete.ckpt")
-
-    #optimizer=optim.SGD(model2.parameters(), lr=0.0000000001, momentum=0.9)
-
-    #model2 = train_model(alexTunedClassifier, criterion, optimizer, num_epochs=5)
-    #torch.save(model2, "./model/alexnet-epoch5-lr_0.0000000001_complete.ckpt")
-
+         if( not last_acc == acc ):
+             if( abs(last_acc - acc) < 0.1):
+                 break
 
 
 def test_network(network):
@@ -307,13 +313,13 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    #train_from_scratch()
+    train_from_scratch("resnet")
     #test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
-    print ("test class 1 ")
-    test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
-    print ("test class 2")
-    test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
-    print("test class 3")
-    test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
-    print("test no a hand")
-    test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    #print ("test class 1 ")
+    #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    #print ("test class 2")
+    #test_image("./dataset/val/2/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    #print("test class 3")
+    #test_image("./dataset/val/3/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
+    #print("test no a hand")
+    #test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")

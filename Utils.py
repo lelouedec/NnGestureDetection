@@ -30,34 +30,62 @@ def copyFeaturesParametersAlexnet(net, netBase):
             f.bias.data = netBase.features[i].bias.data
     print ("network copied")
 
-def ComputeMean(imagesList, depth=256):
+def copyFeaturesParametersResnet(net, netBase, nbBlock1, nbBlock2, nbBlock3, nbBlock4, typeBlock="Bottleneck"):
     """
-    Compute the mean value of each RGB channel of a set of images
+    Copy all parameters of a Resnet model from a pretrained model (except for the last fully connected layer)
+    typeBlock == "BasicBlock" for resnet18 and resnet34 or "Bottleneck" for resnet50, resnet101 and resnet152
+    resnet18: nbBlock1, nbBlock2, nbBlock3, nbBlock4 = 2, 2, 2, 2
+    resnet34: nbBlock1, nbBlock2, nbBlock3, nbBlock4 = 3, 4, 6, 3
+    resnet50: nbBlock1, nbBlock2, nbBlock3, nbBlock4 = 3, 4, 6, 3
+    resnet101: nbBlock1, nbBlock2, nbBlock3, nbBlock4 = 3, 4, 23, 3
+    resnet152: nbBlock1, nbBlock2, nbBlock3, nbBlock4 = 3, 8, 36, 3
+    see model/resnet.py for more informations about the model
     """
-    r,g,b,i = 0.0, 0.0, 0.0, 0.0
-    for img in imagesList:
-        try:
-            rImg, gImg, bImg = img.split()
-            r+=np.mean(np.array(rImg))
-            g+=np.mean(np.array(gImg))
-            b+=np.mean(np.array(bImg))
-            i+=1
-        except:
-            pass
-    return r/i/depth, g/i/depth, b/i/depth
 
-def ComputeStdDev(imagesList, depth=256):
-    """
-    Compute the standard deviation value of each RGB channel of a set of images
-    """
-    r,g,b,i = 0.0, 0.0, 0.0, 0.0
-    for img in imagesList:
-        try:
-            rImg, gImg, bImg = img.split()
-            r+=np.std(np.array(rImg))
-            g+=np.std(np.array(gImg))
-            b+=np.std(np.array(bImg))
-            i+=1
-        except:
-            pass
-    return r/i/depth, g/i/depth, b/i/depth
+    if typeBlock not in ["BasicBlock", "Bottleneck"]:
+        print 'error in the block name, choose "BasicBlock", "Bottleneck"'
+        return
+
+    print "copy net.conv1", net.conv1
+    net.conv1.weight.data = netBase.conv1.weight.data
+    print "copy net.bn1", net.bn1
+    net.bn1.weight.data = netBase.bn1.weight.data
+    net.bn1.bias.data = netBase.bn1.bias.data
+
+    lLayer = [("layer1", net.layer1, netBase.layer1, nbBlock1),
+              ("layer2", net.layer2, netBase.layer2, nbBlock2),
+              ("layer3", net.layer3, netBase.layer3, nbBlock3),
+              ("layer4", net.layer4, netBase.layer4, nbBlock4)
+             ]
+    print("type block " +typeBlock)
+    if typeBlock == "BasicBlock":
+        for layerName, targetLayer, rootLayer, nbC in lLayer:
+            print "copy", layerName, rootLayer
+            for i in range(nbC):
+                targetLayer[i].conv1.weight.data = rootLayer[i].conv1.weight.data
+                targetLayer[i].bn1.weight.data = rootLayer[i].bn1.weight.data
+                targetLayer[i].bn1.bias.data = rootLayer[i].bn1.bias.data
+                targetLayer[i].conv2.weight.data = rootLayer[i].conv2.weight.data
+                targetLayer[i].bn2.weight.data = rootLayer[i].bn2.weight.data
+                targetLayer[i].bn2.bias.data = rootLayer[i].bn2.bias.data
+            if targetLayer[0].downsample:
+                targetLayer[0].downsample[0].weight.data = rootLayer[0].downsample[0].weight.data
+                targetLayer[0].downsample[1].weight.data = rootLayer[0].downsample[1].weight.data
+                targetLayer[0].downsample[1].bias.data = rootLayer[0].downsample[1].bias.data
+
+    elif typeBlock == "Bottleneck":
+        for layerName, targetLayer, rootLayer, nbC in lLayer:
+            print "copy", layerName, rootLayer
+            for i in range(nbC):
+                targetLayer[i].conv1.weight.data = rootLayer[i].conv1.weight.data
+                targetLayer[i].bn1.weight.data = rootLayer[i].bn1.weight.data
+                targetLayer[i].bn1.bias.data = rootLayer[i].bn1.bias.data
+                targetLayer[i].conv2.weight.data = rootLayer[i].conv2.weight.data
+                targetLayer[i].bn2.weight.data = rootLayer[i].bn2.weight.data
+                targetLayer[i].bn2.bias.data = rootLayer[i].bn2.bias.data
+                targetLayer[i].conv3.weight.data = rootLayer[i].conv3.weight.data
+                targetLayer[i].bn3.weight.data = rootLayer[i].bn3.weight.data
+                targetLayer[i].bn3.bias.data = rootLayer[i].bn3.bias.data
+            targetLayer[0].downsample[0].weight.data = rootLayer[0].downsample[0].weight.data
+            targetLayer[0].downsample[1].weight.data = rootLayer[0].downsample[1].weight.data
+            targetLayer[0].downsample[1].bias.data = rootLayer[0].downsample[1].bias.data
