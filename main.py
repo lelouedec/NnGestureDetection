@@ -52,7 +52,7 @@ data_transforms = {
 
 dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=64, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=128, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
 dset_classes = dsets['train'].classes
@@ -115,8 +115,7 @@ def train_model(model, criterion, optimizer, num_epochs=25):
 
                 # wrap them in Variable
                 if use_gpu:
-                    inputs, labels = Variable(inputs.cuda()), \
-                        Variable(labels.cuda())
+                    inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
                 else:
                     inputs, labels = Variable(inputs), Variable(labels)
 
@@ -145,16 +144,16 @@ def train_model(model, criterion, optimizer, num_epochs=25):
                     phase, epoch_loss, epoch_acc, loss.data[0]))
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model = copy.deepcopy(model)
+           # if phase == 'val' and epoch_acc > best_acc:
+            #    best_acc = epoch_acc
+             #   best_model = copy.deepcopy(model)
 
         print()
     time_elapsed = datetime.now() - since
     print('Training complete in {:.0f}ms '.format(
         time_elapsed.microseconds /1000))
     print('Best val Acc: {:4f}'.format(best_acc))
-    return best_model,best_acc
+    return model,best_acc
 
 #Function for displaying prediction for images
 def visualize_model(model, num_images=3):
@@ -226,7 +225,7 @@ def train_from_scratch(model_name):
         alexnextmodel = alexnet(True)
         model = AlexNet()
         copyFeaturesParametersAlexnet(model, alexnextmodel)
-        model.fc = nn.Linear(4096, 6)
+        #model.fc = nn.Linear(4096, 6)
         if use_gpu:
          	model.cuda()
         criterion = nn.CrossEntropyLoss()
@@ -275,10 +274,11 @@ def train_from_scratch(model_name):
             {'params': model.fc.parameters(), 'lr': 0.0}
         ], lr=0.001, momentum=0.5)
     elif( model_name == "resnet50"):
-        resnetmodel = resnet18(True)
+        cudnn.benchmark=False
+        resnetmodel = resnet50(True)
         model = ResNet(Bottleneck, [3, 4, 6, 3])
         copyFeaturesParametersResnet(model, resnetmodel,3, 4, 6, 3,"Bottleneck")
-        model.fc = nn.Linear(512 * BasicBlock.expansion, 6)
+        model.fc = nn.Linear(512 * Bottleneck.expansion, 6)
         if use_gpu:
                 model.cuda()
         criterion = nn.CrossEntropyLoss()
@@ -352,7 +352,7 @@ def test_image(directory,network):
 
 if __name__ == '__main__':
     main(sys.argv[1:])
-    train_from_scratch("resnet34")
+    train_from_scratch("alexnet")
     #test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
