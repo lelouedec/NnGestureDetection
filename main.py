@@ -46,7 +46,7 @@ def main(argv):
 if __name__ == '__main__':
     main(sys.argv[1:])
     #train_from_scratch("alexnet")
-    #test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
+    test_network("./model/alexnet-epoch5-lr_0.00001_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
     #print ("test class 2")
@@ -56,4 +56,4 @@ if __name__ == '__main__':
     #print("test no a hand")
     #test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
 
-    data_collect()
+    #data_collect()
