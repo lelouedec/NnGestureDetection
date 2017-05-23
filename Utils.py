@@ -54,7 +54,7 @@ data_transforms = {
 
 dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=128, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=64, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
 dset_classes = dsets['train'].classes
@@ -221,7 +221,7 @@ def test_model(model):
 
 
 
-def train_model(model, criterion, optimizer, num_epochs=25):
+def train_model(model, criterion, optimizer,ind,accs, num_epochs=25):
     since = datetime.now()
 
     best_model = model
@@ -274,6 +274,8 @@ def train_model(model, criterion, optimizer, num_epochs=25):
 
             print('{} Loss: {:.4f} Acc: {:.4f} Real_Loss : {:.4f}'.format(
                     phase, epoch_loss, epoch_acc, loss.data[0]))
+            if phase == 'val':
+                accs[ind][epoch] = epoch_acc
 
 
         print()
@@ -360,27 +362,26 @@ def train_from_scratch(model_name):
             {'params': model.fc.parameters(), 'lr': 0.0}
         ], lr=0.001, momentum=0.5)
 
+    accs = [[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],
+    [0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0],[0,0,0,0,0,0]]
 
 
-    model2,_ = train_model(model, criterion, optimizer, num_epochs=5)
+    model2,_ = train_model(model, criterion, optimizer,0,accs, num_epochs=5)
     torch.save(model2, "./model/"+model_name+"-epoch5-lr_0.001_notcomplete.ckpt")
    # visualize_model(model2,10)
     test_model(model2)
     lre = 0.001
     last_acc = 0.0
     acc = 0.0
-    for i in range(0,20):
+    for i in range(0,10):
    #we train everything but with a lower learning rate
          optimizer=optim.SGD(model2.parameters(), lr=lre, momentum=0.9)
          last_acc = acc
-         model2,acc = train_model(model2, criterion, optimizer, num_epochs=5)
+         model2,acc = train_model(model2, criterion, optimizer,i+1, accs, num_epochs=5)
          torch.save(model2, "./model/"+model_name+"-epoch5-lr_"+`lre` +"_complete.ckpt")
          if( i % 5 == 0 ):
              lre = lre / 10
-         #if( not last_acc == acc ):
-          #   if( abs(last_acc - acc) < 0.1):
-           #      break
-
+    return accs
 
 def test_network(network):
     model = torch.load(network)
@@ -408,9 +409,20 @@ def test_image(directory,network):
         inp = Variable(transform(Image.open(imgPath)).unsqueeze(0), volatile=True)
     logit = model(inp)[1]
     proba,pred = torch.max(logit.data,1)
-    #print (proba[0][0])
-    #print (pred[0][0])
     print ("result : {:.3f} for {}".format(proba[0][0],classes[pred[0][0]]))
 
     time_elapsed = datetime.now() - since
     print('Training complete in {}millisseconds'.format(time_elapsed.microseconds/1000 ))
+
+def data_collect ():
+    val1 = train_from_scratch("alexnet")
+    val2 = train_from_scratch("resnet18")
+    val3 = train_from_scratch("resnet34")
+    print ("alexnet accuracy: ")
+    print (val1)
+
+    print ("resnet18 accuracy: ")
+    print (val2)
+
+    print ("resnet34 accuracy: ")
+    print (val3)
