@@ -200,9 +200,9 @@ def test_model(model):
     hist_erreur = [0,0,0,0,0,0]
     nb_erreurs =[ [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0],
     [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0]  ]
-    for data in dset_loaders['val']:
+    for i,data in enumerate(dset_loaders['val']):
         inputs, labels = data
-        print (data.imgs)
+        print (dset_loaders['val'].dataset.imgs[i])
         if use_gpu:
             inputs, labels = Variable(inputs.cuda(device=gpus[0])), Variable(labels.cuda(device=gpus[0]))
         else:
