@@ -200,9 +200,31 @@ def test_model(model):
     hist_erreur = [0,0,0,0,0,0]
     nb_erreurs =[ [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0],
     [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0]  ]
-    for i,data in enumerate(dset_loaders['val']):
+    data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomSizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'valz': transforms.Compose([
+        transforms.Scale(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    }
+
+    dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'valz']}
+
+    dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=1, shuffle=False, num_workers=4) for x in ['train', 'valz']}
+
+    dset_sizes = {x: len(dsets[x]) for x in ['train', 'valz']}
+    dset_classes = dsets['train'].classes
+
+    for i,data in enumerate(dset_loaders['valz']):
         inputs, labels = data
-        print (dset_loaders['val'].dataset.imgs[i])
+        #print (dset_loaders['val'].dataset.imgs[i])
         if use_gpu:
             inputs, labels = Variable(inputs.cuda(device=gpus[0])), Variable(labels.cuda(device=gpus[0]))
         else:
