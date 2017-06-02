@@ -21,6 +21,7 @@ import os
 import sys, getopt
 from Utils import *
 import Utils as utils
+import grad_cam as gc
 
 use_gpu = 0
 
@@ -56,4 +57,4 @@ if __name__ == '__main__':
     #print("test no a hand")
     #test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
     #data_collect()
-    display_features(torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt"))
+    #display_features(torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt"))
