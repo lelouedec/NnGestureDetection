@@ -39,10 +39,12 @@ transform = transforms.Compose([
 
 img = cv2.imread(image, 1)
 img_inp = np.float32(cv2.resize(img, (224, 224)))/255
+img_inpu = Image.open(image)
+img_inpu = img_inpu.resize([224,224])
 if (use_gpu):
-    inpu = Variable(transform(img_inp).unsqueeze(0).cuda(device=gpus[0]))
+    inpu = Variable(transform(img_inpu).unsqueeze(0).cuda(device=gpus[0]))
 else:
-    inpu = Variable(transform(img_inp).unsqueeze(0), requires_grad = True)
+    inpu = Variable(transform(img_inpu).unsqueeze(0), requires_grad = True)
 
 means=[0.485, 0.456, 0.406]
 stds=[0.229, 0.224, 0.225]
@@ -56,8 +58,9 @@ preprocessed_img =  np.ascontiguousarray(np.transpose(preprocessed_img, (2, 0, 1
 preprocessed_img = torch.from_numpy(preprocessed_img)
 inp = Variable(preprocessed_img.unsqueeze(0), requires_grad = True)
 print(inp.data)
-if(torch.equal(inp.data,inpu.data)):
-    print("equals")
+print(inpu.data)
+
+print(torch.equal(inp.data,inpu.data))
 
 outputs = []#outputs of each layers
 gradients = []#gradinputs of each layers
