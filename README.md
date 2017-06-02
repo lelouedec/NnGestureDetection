@@ -10,3 +10,8 @@ what you can do now :
 - create a scheduler for the learning rate
 
 Choose to execute on GPU or CPU from the commande line ( --gpu 0/1)
+
+Grad-cam.py : It is the implementation of the paper : https://arxiv.org/abs/1610.02391 in pytorch
+(Fixed thanks to the implementation of https://github.com/jacobgil/pytorch-grad-cam)
+
+Can be used as python grad-cam.py <aimed layer> <mode> <image>

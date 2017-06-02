@@ -104,7 +104,7 @@ heatmap = cv2.applyColorMap(np.uint8(255*cam), cv2.COLORMAP_JET)
 heatmap = np.float32(heatmap) / 255
 cam = heatmap + np.float32(img_inp)
 cam = cam / np.max(cam)
-#cv2.imwrite("frog.jpg", np.uint8(255 * cam))
+cv2.imwrite("frog.jpg", np.uint8(255 * cam))
 cv2.imshow('image',np.uint8(255 * cam))
 cv2.waitKey(0)
 cv2.destroyAllWindows()
