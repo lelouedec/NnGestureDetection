@@ -59,4 +59,6 @@ if __name__ == '__main__':
     #data_collect()
     #display_features(torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt"))
     model = torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt")
-    gc.grad_cam(model,11,"./dataset/valz/5/IMG_20170524_101303880.jpg")
+    model.cpu()
+    torch.save(model,"model_alexnet_test.ckpt")
+    #gc.grad_cam(model,11,"./dataset/valz/5/IMG_20170524_101303880.jpg")
