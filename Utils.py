@@ -26,7 +26,7 @@ from Utils import *
 use_gpu = 0
 gpus=[0,1,2]
 plt.ion()   # interactive mode
-os.environ['CUDA_VISIBLE_DEVICES'] = '1' #selecting the graphic processor
+os.environ['CUDA_VISIBLE_DEVICES'] = '0' #selecting the graphic processor
 cudnn.benchmark = True #-- uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms.
                        #-- If this is set to false, uses some in-built heuristics that might not always be fastest.
 

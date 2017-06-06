@@ -1,5 +1,5 @@
 from __future__ import print_function, division
-
+import cv2
 from alexnet  import *
 from resnet import *
 from resnet import BasicBlock
@@ -58,3 +58,5 @@ if __name__ == '__main__':
     #test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
     #data_collect()
     #display_features(torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt"))
+    model = torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt")
+    gc.grad_cam(model,11,"./dataset/valz/5/IMG_20170524_101303880.jpg")

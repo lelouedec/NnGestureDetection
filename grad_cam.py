@@ -1,4 +1,5 @@
 from __future__ import print_function, division
+import cv2
 
 from alexnet  import *
 from resnet import *
@@ -21,7 +22,6 @@ import os
 import sys, getopt
 from Utils import *
 import Utils as utils
-import cv2
 
 
 
@@ -88,9 +88,9 @@ def grad_cam(model,layer_num,image):
     cam = heatmap + np.float32(img_inp)
     cam = cam / np.max(cam)
     cv2.imwrite(image+"_result.jpg", np.uint8(255 * cam))
-    cv2.imshow('image',np.uint8(255 * cam))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    #cv2.imshow('image',np.uint8(255 * cam))
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
 
 
 use_gpu = 0
