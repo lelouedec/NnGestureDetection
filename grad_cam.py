@@ -23,9 +23,6 @@ import sys, getopt
 from Utils import *
 import Utils as utils
 
-
-
-
 def grad_cam(model,layer_num,image):
 
     transform = transforms.Compose([
@@ -66,7 +63,7 @@ def grad_cam(model,layer_num,image):
 
     model.features.zero_grad()
     model.classifier.zero_grad()
-    one_hot.backward(retain_graph=True)
+    one_hot.backward()
     grad_input = gradients[-1].data.numpy()
     activations = outputs[-1].data.numpy()[0,:]
 
