@@ -47,7 +47,7 @@ def main(argv):
 if __name__ == '__main__':
     main(sys.argv[1:])
     #train_from_scratch("alexnet")
-    #test_network("./model/resnet34-epoch5-lr_1e-05_complete.ckpt")
+    test_network("./model/alexnet-epoch5-lr_1e-05_complete.ckpt")
     #print ("test class 1 ")
     #test_image("./dataset/val/1/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
     #print ("test class 2")
@@ -58,6 +58,6 @@ if __name__ == '__main__':
     #test_image("./dataset/val/ImagesDiversTest/","./model/alexnet-epoch5-lr_0.00000001_complete.ckpt")
     #data_collect()
     #display_features(torch.load("./model/resnet34-epoch5-lr_1e-05_complete.ckpt"))
-    model = torch.load("./model/model_alexnet_test.ckpt")
-    print(model)
-    gc.grad_cam(model,11,"./dataset/val/5/5_3212_IMG_20170529_135817.jpg")
+    #model = torch.load("./model/model_alexnet_test.ckpt")
+    #print(model)
+    #gc.grad_cam(model,11,"./dataset/val/5/5_3212_IMG_20170529_135817.jpg")

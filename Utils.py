@@ -23,10 +23,9 @@ import os
 import sys, getopt
 from Utils import *
 
-use_gpu = 0
 gpus=[0,1,2]
 plt.ion()   # interactive mode
-os.environ['CUDA_VISIBLE_DEVICES'] = '' #selecting the graphic processor
+os.environ['CUDA_VISIBLE_DEVICES'] = '0' #selecting the graphic processor
 cudnn.benchmark = True #-- uses the inbuilt cudnn auto-tuner to find the fastest convolution algorithms.
                        #-- If this is set to false, uses some in-built heuristics that might not always be fastest.
 
@@ -54,7 +53,7 @@ data_transforms = {
 
 dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=64, shuffle=True, num_workers=4) for x in ['train', 'val']}
+dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=40, shuffle=True, num_workers=4) for x in ['train', 'val']}
 
 dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
 dset_classes = dsets['train'].classes
@@ -315,7 +314,7 @@ def train_from_scratch(model_name):
         alexnextmodel = alexnet(True)
         model = AlexNet()
         copyFeaturesParametersAlexnet(model, alexnextmodel)
-        #model.fc = nn.Linear(4096, 6)
+        model.fc = nn.Linear(4096, 6)
         if use_gpu:
          	model.cuda()
         criterion = nn.CrossEntropyLoss()
@@ -392,7 +391,7 @@ def train_from_scratch(model_name):
     model2,_ = train_model(model, criterion, optimizer,0,accs, num_epochs=5)
     torch.save(model2, "./model/"+model_name+"-epoch5-lr_0.001_notcomplete.ckpt")
    # visualize_model(model2,10)
-    test_model(model2)
+   # test_model(model2)
     lre = 0.001
     last_acc = 0.0
     acc = 0.0
@@ -441,8 +440,8 @@ def data_collect ():
     val1 = train_from_scratch("alexnet")
     val2 = train_from_scratch("resnet18")
     val3 = train_from_scratch("resnet34")
-    print ("alexnet accuracy: ")
-    print (val1)
+    #print ("alexnet accuracy: ")
+    #print (val1)
 
     print ("resnet18 accuracy: ")
     print (val2)
