@@ -197,8 +197,7 @@ def test_model(model):
     corrects = 0
     total = 0
     hist_erreur = [0,0,0,0,0,0]
-    nb_erreurs =[ [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0],
-    [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0]  ]
+    nb_erreurs =[ [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0],  [0,0,0,0,0,0], [0,0,0,0,0,0], [0,0,0,0,0,0]  ]
     data_transforms = {
     'train': transforms.Compose([
         transforms.RandomSizedCrop(224),
@@ -206,7 +205,7 @@ def test_model(model):
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
-    'valz': transforms.Compose([
+    'val': transforms.Compose([
         transforms.Scale(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
@@ -214,14 +213,14 @@ def test_model(model):
     ]),
     }
 
-    dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'valz']}
+    dsets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x])for x in ['train', 'val']}
 
-    dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=1, shuffle=False, num_workers=4) for x in ['train', 'valz']}
+    dset_loaders = {x: torch.utils.data.DataLoader(dsets[x], batch_size=1, shuffle=False, num_workers=4) for x in ['train', 'val']}
 
-    dset_sizes = {x: len(dsets[x]) for x in ['train', 'valz']}
+    dset_sizes = {x: len(dsets[x]) for x in ['train', 'val']}
     dset_classes = dsets['train'].classes
 
-    for i,data in enumerate(dset_loaders['valz']):
+    for data in dset_loaders['val']:
         inputs, labels = data
         #print (dset_loaders['val'].dataset.imgs[i])
         if use_gpu:
@@ -232,10 +231,10 @@ def test_model(model):
         ald, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         corrects += torch.sum(predicted == labels.data)
-	for i in range(0,predicted.size()[0]):
+        for i in range(0,predicted.size()[0]):
             if( not predicted[i][0]==labels.data[i]):
-	       hist_erreur[labels.data[i]]= hist_erreur[labels.data[i]] + 1
-	       nb_erreurs[labels.data[i]][predicted[i][0]] = nb_erreurs[labels.data[i]][predicted[i][0]] + 1
+                hist_erreur[labels.data[i]-1]= hist_erreur[labels.data[i]-1] + 1
+                nb_erreurs[labels.data[i]-1][predicted[i][0]-1] +=1
     print('Accuracy of the network on the test images: %d %%' % (
         100 * corrects / total))
     print (hist_erreur)
@@ -318,7 +317,6 @@ def train_from_scratch(model_name):
         if use_gpu:
          	model.cuda()
         criterion = nn.CrossEntropyLoss()
-        #we dont train last layers
         optimizer=optim.SGD([{'params': model.classifier.parameters()},
                              {'params': model.features.parameters(), 'lr': 0.0}
                             ], lr=0.001, momentum=0.5)
